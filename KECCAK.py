@@ -1,4 +1,6 @@
 '''
+SHA-3 / KECCAK 알고리즘 구현
+
 keccak_f(state): KECCAK의 변환 함수입니다. 
 
 24라운드에 걸쳐 θ, ρ, π, χ, ι 변환 단계를 수행합니다.
@@ -11,7 +13,6 @@ keccak(message, rate, capacity): KECCAK 해시 함수입니다. 입력 메시지
 
 테스트 코드: "Hello, KECCAK!"라는 메시지를 해시하여 KECCAK-256 해시 값을 출력합니다.
 '''
-
 import numpy as np
 
 # KECCAK의 변환 함수 예시
@@ -31,25 +32,25 @@ def keccak_f(state):
 
     for round in range(24):
         # Theta
-        C = [state[x, 0] ^ state[x, 1] ^ state[x, 2] ^ state[x, 3] ^ state[x, 4] for x in range(5)]
+        C = [int(state[x, 0] ^ state[x, 1] ^ state[x, 2] ^ state[x, 3] ^ state[x, 4]) for x in range(5)]
         D = [C[x-1] ^ ROT(C[(x+1) % 5], 1) for x in range(5)]
         for x in range(5):
             for y in range(5):
-                state[x, y] ^= D[x]
+                state[x, y] = int(state[x, y]) ^ D[x]
 
         # Rho and Pi
         B = np.zeros((5, 5), dtype=np.uint64)
         for x in range(5):
             for y in range(5):
-                B[y, (2*x + 3*y) % 5] = ROT(state[x, y], ((x+1)*(y+1)) % 64)
+                B[y, (2*x + 3*y) % 5] = ROT(int(state[x, y]), ((x+1)*(y+1)) % 64)
 
         # Chi
         for x in range(5):
             for y in range(5):
-                state[x, y] = B[x, y] ^ ((~B[(x+1) % 5, y]) & B[(x+2) % 5, y])
+                state[x, y] = int(B[x, y]) ^ ((~int(B[(x+1) % 5, y])) & int(B[(x+2) % 5, y]))
 
         # Iota
-        state[0, 0] ^= RC[round]
+        state[0, 0] = int(state[0, 0]) ^ RC[round]
 
     return state
 
@@ -83,7 +84,7 @@ def keccak(message, rate=1088, capacity=512):
     while len(output) < capacity // 8:
         for y in range(5):
             for x in range(5):
-                output += state[x, y].to_bytes(8, byteorder='little')
+                output += state[x, y].tobytes()
                 if len(output) >= capacity // 8:
                     break
             if len(output) >= capacity // 8:
