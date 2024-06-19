@@ -1,23 +1,46 @@
 '''
 MAC(Message Authentication Code)
 HMAC(Hash-based Message Authentication Code)
-1. 비밀 키 패딩: 비밀 키가 해시 블록 크기보다 짧으면 오른쪽에 0으로 패딩하고, 길면 해시 함수를 적용하여 블록 크기로 줄입니다.
-2. 내부 키와 외부 키 생성: 내부 키와 외부 키는 각각 비밀 키에 특정 값을 XOR한 결과입니다.
-3. 해시 계산:
-   - 내부 해시: 내부 키와 메시지를 결합하여 해시 함수를 적용합니다.
-   - 외부 해시: 외부 키와 내부 해시 결과를 결합하여 다시 해시 함수를 적용합니다.
-4. 최종 MAC 생성: 최종 해시 결과가 메시지 인증 코드 (MAC)가 됩니다.
+
+1. 키 길이 조정:
+block_size = hashlib.sha256().block_size는 SHA-256 해시 함수의 블록 크기를 가져옵니다.
+키가 블록 크기보다 길면 해시하여 줄이고, 블록 크기보다 짧으면 0으로 패딩합니다.
+
+2. ipad와 opad 생성:
+ipad는 키의 각 바이트를 0x36과 XOR하여 생성합니다.
+opad는 키의 각 바이트를 0x5C와 XOR하여 생성합니다.
+
+3. 첫 번째 해시 계산:
+ipad와 메시지를 결합하여 해시 함수에 입력하고 첫 번째 해시 값을 계산합니다.
+
+4. 두 번째 해시 계산:
+opad와 첫 번째 해시 값을 결합하여 해시 함수에 입력하고 최종 HMAC 값을 계산합니다.
 '''
-import hmac
 import hashlib
 
-# 비밀 키와 메시지
-secret_key = b'secret_key'
-message = b'This is a message.'
+def hmac_sha256(key, message):
+    block_size = hashlib.sha256().block_size
+    
+    # 키 길이 조정
+    if len(key) > block_size:
+        key = hashlib.sha256(key).digest()
+    if len(key) < block_size:
+        key = key.ljust(block_size, b'\x00')
+    
+    # ipad와 opad 생성
+    ipad = bytes((x ^ 0x36) for x in key)
+    opad = bytes((x ^ 0x5C) for x in key)
+    
+    # 첫 번째 해시 계산
+    inner_hash = hashlib.sha256(ipad + message).digest()
+    
+    # 두 번째 해시 계산
+    hmac = hashlib.sha256(opad + inner_hash).digest()
+    
+    return hmac
 
-# HMAC 생성 (SHA-256 해시 함수 사용)
-hmac_obj = hmac.new(secret_key, message, hashlib.sha256)
-mac = hmac_obj.hexdigest()
-
-print(f'Message: {message.decode()}')
-print(f'MAC: {mac}')
+# 테스트
+key = b'secret_key'
+message = b'Hello, HMAC!'
+hmac_result = hmac_sha256(key, message)
+print(f'HMAC: {hmac_result.hex()}')
