@@ -207,14 +207,12 @@ Collision ⇒ 2개의 다른 메시지가 같은 해시 값을 가지는 것
 SHA-512는 8개의 64비트 워드로 구성된 초기 해시 값(H0~H7)으로 시작합니다. 이 초기 값은 다음과 같이 정의됩니다:
 
 ```python
-python코드 복사
 H = [
     0x6a09e667f3bcc908, 0xbb67ae8584caa73b,
     0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
     0x510e527fade682d1, 0x9b05688c2b3e6c1f,
     0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
 ]
-
 ```
 
 ### **단계 3: 80 라운드 처리**
@@ -230,7 +228,6 @@ SHA-512 알고리즘은 각 1024비트 메시지 블록을 80 라운드에 걸�
          s0 = (rightrotate(W[t-15], 1) ^ rightrotate(W[t-15], 8) ^ (W[t-15] >> 7))
          s1 = (rightrotate(W[t-2], 19) ^ rightrotate(W[t-2], 61) ^ (W[t-2] >> 6))
          W[t] = (W[t-16] + s0 + W[t-7] + s1) & 0xffffffffffffffff
-
      ```
 
 2. **작업 변수 초기화**:
@@ -259,7 +256,6 @@ SHA-512 알고리즘은 각 1024비트 메시지 블록을 80 라운드에 걸�
          c = b
          b = a
          a = (temp1 + temp2) & 0xffffffffffffffff
-
      ```
 
 4. **중간 해시 값 업데이트**:
